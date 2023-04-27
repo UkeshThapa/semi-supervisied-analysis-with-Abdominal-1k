@@ -1,4 +1,3 @@
-
 import torch
 from monai.inferers import sliding_window_inference
 from monai.transforms import (
