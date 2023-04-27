@@ -16,7 +16,7 @@ def main():
                     help='dataset path. For this create the json file')
     parser.add_argument('--resume', type=str, default=None,
                     help='put the path to resuming file if needed')
-    parser.add_argument('--epochs',type=int, default=10,
+    parser.add_argument('--epochs',type=int, default=4,
                         help='Out channel for multi or single organ segmentation')
     parser.add_argument('--val_interval',type=int, default=2,
                         help='validation interval (default=2)')
