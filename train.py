@@ -54,7 +54,8 @@ def main():
         
     ).to(device)
     loss_function = DiceLoss(to_onehot_y=True, softmax=True, squared_pred=True)
-    optimizer = torch.optim.Adam(model.parameters(), 1e-4)
+    optimizer = torch.optim.Adam(model.parameters(), args.lr)
+    dice_metric = DiceMetric(include_background=False,reduction="mean")
 
 
 
@@ -62,7 +63,7 @@ def main():
     if args.resume:
         print("resume")
     else:
-        train()    
+        train(args.exp_name,model, device, args.epochs, agrs.val_interval,args.num_segments,data,loss_function,optimizer,dice_metric) 
 
 
 
