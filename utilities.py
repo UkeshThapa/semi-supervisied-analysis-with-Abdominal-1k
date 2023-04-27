@@ -7,7 +7,24 @@ from monai.transforms import (
     AsDiscrete,
     Compose
 )
+import matplotlib.pyplot as plt
 
+
+def visualize(exp_num,epoch_loss_values,metric_values,val_interval):
+    plt.figure("train", (12, 6))
+    plt.subplot(1, 2, 1)
+    plt.title("Epoch Average Loss")
+    x = [i + 1 for i in range(len(epoch_loss_values))]
+    y = epoch_loss_values
+    plt.xlabel("epoch")
+    plt.plot(x, y)
+    plt.subplot(1, 2, 2)
+    plt.title("Val Mean Dice")
+    x = [val_interval * (i + 1) for i in range(len(metric_values))]
+    y = metric_values
+    plt.xlabel("epoch")
+    plt.plot(x, y)
+    plt.savefig(f'result\\visulaize_image_experiment_{exp_num}')
 
 
 
@@ -40,7 +57,6 @@ def train(checkpoint_path, exp_num,model,device,max_epochs,val_interval,num_segm
         model.train()
         epoch_loss = 0
         step = 0
-        print(optimizer.state_dict())
         for i,batch_data in enumerate(tqdm(train_loader)):
             step += 1
             inputs, labels = (
@@ -100,3 +116,5 @@ def train(checkpoint_path, exp_num,model,device,max_epochs,val_interval,num_segm
                         f"\nBest mean dice: {best_metric:.4f} "
                         f"\nAt epoch: {best_metric_epoch}\n"
                         )
+    # save the data 
+    visualize(exp_num,epoch_loss_values,metric_values,val_interval)
