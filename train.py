@@ -63,7 +63,7 @@ def main():
     if args.resume:
         print("resume")
     else:
-        train(args.exp_name,model, device, args.epochs, agrs.val_interval,args.num_segments,data,loss_function,optimizer,dice_metric) 
+        train(args.exp_num,model, device, args.epochs, args.val_interval,args.num_segments,data,loss_function,optimizer,dice_metric) 
 
 
 
