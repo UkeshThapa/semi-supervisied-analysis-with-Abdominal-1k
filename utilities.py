@@ -1,8 +1,10 @@
+
+import torch
+from monai.inferers import sliding_window_inference
 from monai.transforms import (
     AsDiscrete,
     Compose
 )
-from monai.inferers import sliding_window_inference
 
 
 
@@ -17,7 +19,7 @@ def train(model,device,):
     post_pred = Compose([AsDiscrete(argmax=True, to_onehot=5)])
     post_label = Compose([AsDiscrete(to_onehot=5)])
 
-    for epoch in tqdm(range(max_epochs)):
+    for epoch in range(max_epochs):
         print("-" * 10)
         print(f"epoch {epoch + 1}/{max_epochs}")
         model.train()
