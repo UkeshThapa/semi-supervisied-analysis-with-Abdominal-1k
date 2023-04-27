@@ -1,6 +1,7 @@
 import torch
 import argparse
 from utilities import train
+from utilities import resume_train
 from preprocess import preprocess
 from monai.losses import DiceLoss
 from monai.metrics import DiceMetric
@@ -61,7 +62,7 @@ def main():
 
     # train the data 
     if args.resume:
-        print("resume")
+        resume_train(args.resume)
     else:
         train(args.exp_num,model, device, args.epochs, args.val_interval,args.num_segments,data,loss_function,optimizer,dice_metric) 
 
