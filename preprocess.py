@@ -59,7 +59,7 @@ class preprocess:
             val_ds = CacheDataset(
                     data=self.val_files, transform=self.val_transforms, cache_rate=1.0, num_workers=workers)
             val_loader = DataLoader(val_ds, batch_size=batch_size, num_workers=1)
-            return train_loader, val_loader
+            return train_ds, train_loader, val_loader
 
         else:
             train_ds = Dataset(data=self.train_files, transform=self.train_transforms)
@@ -68,4 +68,4 @@ class preprocess:
             val_ds = Dataset(data=self.val_files, transform=self.val_transforms)
             val_loader = DataLoader(val_ds, batch_size=batch_size, num_workers=workers)
 
-            return train_loader, val_loader
+            return train_ds, train_loader, val_loader
