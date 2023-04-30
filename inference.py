@@ -11,13 +11,16 @@ from monai.transforms import (
     Orientationd,
     ScaleIntensityRanged,
     EnsureChannelFirstd,
-    ToTensord
+    ToTensord,
+    AsDiscrete,
+    Compose
     )
 import nibabel as nib
 import SimpleITK as sitk
 from monai.metrics import DiceMetric
 from monai.networks.nets import UNet
 from monai.networks.layers import Norm
+from monai.data import decollate_batch
 from monai.inferers import sliding_window_inference
 from monai.data import DataLoader, Dataset, CacheDataset
 
@@ -46,12 +49,13 @@ def pre_processing(test_file):
     
 
 
-def inference(model,device,test_loader,testingData):
+def inference(model,device,test_loader,testingData,dice_metric,num_segments):
     model.eval()
+    post_pred = Compose([AsDiscrete(argmax=True, to_onehot=num_segments)])
+    post_label = Compose([AsDiscrete(to_onehot=num_segments)])
+
     with torch.no_grad():
         for i, test_data in enumerate(tqdm(test_loader)):
-            # data_type = test_data["label"].dtype
-            # data_type = monai.utils.misc.torch_to_numpy_dtype_dict[test_data["label"].dtype]
             org_img = sitk.ReadImage(testingData[i]['label'])
             base_name = os.path.basename(testingData[i]['label'])     
             roi_size = (64, 64, 64)
@@ -59,6 +63,11 @@ def inference(model,device,test_loader,testingData):
             test_outputs = sliding_window_inference(
                 test_data["image"].to(device), roi_size, sw_batch_size, model
             )
+            test_pred_out = [post_pred(i) for i in decollate_batch(test_outputs)]
+            test_labels = [post_label(i) for i in decollate_batch(test_data["label"].to(device))]
+            #             # compute metric for current iteration
+            dice_metric(y_pred=test_pred_out, y=test_labels)
+
             output_image = test_outputs.argmax(dim=1).detach().cpu().numpy().squeeze().astype(np.float32)
             output_image = sitk.GetImageFromArray(output_image)
             output_image.SetOrigin(org_img.GetOrigin())
@@ -66,11 +75,16 @@ def inference(model,device,test_loader,testingData):
             output_image.SetSpacing(org_img.GetSpacing())
 
             sitk.WriteImage(output_image, f"result/experiment1/{base_name}")
+    metric = dice_metric.aggregate().item()
+    dice_metric.reset()
+    with open('metric.txt', 'w') as f:
+        f.write(f'Total metric : {metric}')
 
 
 
 def main():
     
+    num_segments =  5
     # load the image 
     with open('testing_data.json') as f:
         data = json.load(f)
@@ -96,7 +110,10 @@ def main():
     checkpoint = torch.load("result/model_experiment_1.pth.tr")
     model.load_state_dict(checkpoint['state_dict'])
 
-    inference(model,device,test_loader,testingData)
+    # dice metric 
+    dice_metric = DiceMetric(include_background=False,reduction="mean")
+
+    inference(model,device,test_loader,testingData,dice_metric,num_segments)
 
 
 
